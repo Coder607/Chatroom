@@ -1,22 +1,22 @@
 # 基于C++和epoll实现的聊天室
 
-- 客户端涉及到的技术点
+- 客户端技术点
    - 常用QT控件(QWidget, QListWidget, QLabel, QPushButton)
    - QT信号与槽
    - QJsonObject完成json数据的解析
    - QT多线程
    - QTcpSocket连接服务器
    
-- 服务端涉及到的技术点
+- 服务端技术点
    - epoll多路IO转接机制
    - 常用STL(vector, map)
    - 文件读写(fstream)
    - jsoncpp解析json数据
-   - MySQL基本操作
+   - MySQL操作(连接，查询)
    
 - 实现的功能
    - 注册
-   - 单点登录
+   - 登录
    - 登出
    - 群聊(支持文本和图片的传送)
    - 上线下线公告
@@ -31,8 +31,8 @@
   
 - 服务端使用方式
   - 1.安装jsoncpp库, 详情请见https://github.com/open-source-parsers/jsoncpp
-    - 安装完后将./vcpkg/installed/x64-linux/include/json拷贝到/usr/local/include/
-    - 将./vcpkg/installed/x64-linux/lib/libjsoncpp.a拷贝到/usr/local/include
+    - 安装完后将./vcpkg/installed/x64-linux/include/json拷贝到/usr/local/lib
+    - 将./vcpkg/installed/x64-linux/lib/libjsoncpp.a拷贝到/usr/local/lib
     - 在/etc/profile里追加
         - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
         - export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib
@@ -46,10 +46,11 @@
   - 6.运行步骤5生成的可执行文件
  
 - 通信协议
-  - 开始1B表示这个数据包是登录请求、发送请求、登出请求等(详情请见./server/ProtocolHead/protocolmsg.h)
-  - 接下来2B表示用户的账号
-  - 接下来1B表示数据包的数据格式，文本或图片
-  - 接下来4B表示数据的大小
+  - 通信消息头共8字节
+  - 1B表示数据包消息类型，例如登录请求、发送请求、登出请求等(详情请见./server/ProtocolHead/protocolmsg.h)
+  - 2B表示用户的账号
+  - 1B表示数据包的数据格式，文本或图片
+  - 4B表示数据的大小
   - 最后就是真实数据了
   
 - 遇到的问题及解决方案
@@ -63,7 +64,3 @@
     - 客户端与服务端建立两个连接，一个用于写数据，一个用于读数据
   - 客户端强制退出问题。客户端在接收数据时，强制退出了，服务端由于发给客户端的数据没有收到确认，在read确认包时进入了阻塞状态。
     - 每次向客户端发送数据时，先用getsockopt获取客户端的连接状态，若客户端的连接状态不是ESTABLISHED，则直接结束发送，并取消监听客户端的fd
-   
-- 总结
-   - 本项目的主要目的是熟悉C++和Linux网络编程，目前还有很多不完善之处，例如服务端仅采用单线程实现，这样效率会很低，后续考虑引入线程池。
-
